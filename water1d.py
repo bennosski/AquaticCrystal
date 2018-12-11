@@ -5,6 +5,7 @@ from numpy import *
 from scipy.integrate import odeint
 import matplotlib.animation as animation
 import sympy as sp
+import os, shutil
 
 # system size
 W = 25
@@ -24,7 +25,8 @@ wis = ones(N)
 wis[W:N-W:buoy_spacing] = buoy_size
 sum_wis = sum(wis)
 
-ts = linspace(0, 450, 750)
+#ts = linspace(0, 450, 750)
+ts = linspace(0, 4, 10)
 
 drive = zeros(N)
 def F(arr, t, f):   
@@ -49,6 +51,8 @@ def F(arr, t, f):
 def solve(f): return odeint(F, zeros(2*N), ts, args=(f,))[:,:N]
 
 def test1():
+    print('\n\nTest1\n')
+
     fs = linspace(1.3, 1.7, 30)
     maxs = []
     for f in fs:
@@ -57,7 +61,7 @@ def test1():
         s2 = std(x[:,-W:])/std(x[:,:W])
         s3 = std(x[:,-W:])
         maxs.append([s1,s2,s3])
-        print(f, maxs[-1])
+        print('f=%1.3f scores=%1.3f, %1.3f, %1.3f'%((f,)+tuple(maxs[-1])))
 
     maxs = array(maxs)
     figure()
@@ -69,7 +73,9 @@ def test1():
 
 
 def test2():
-   
+    
+    print('\n\nTest2\n')
+    
     f = 1.41
     x = solve(f)
 
@@ -82,8 +88,7 @@ def test2():
     savefig('oscillations.png')
 
 
-
-def make_movie_frames():
+def compute_bandstructure():
     w2, k = sp.symbols('w2 k', domain=sp.S.Reals)
 
     N = buoy_spacing
@@ -117,11 +122,22 @@ def make_movie_frames():
     savefig('bands.png')
     close()
 
+    return ks, rs
+    
 
-    N = 2*W + Nmid    
+def make_movie_frames():
+    print('\n\nMaking Movie Frames\n')
+    
+    ks, rs = compute_bandstructure()
+
+    #N = 2*W + Nmid
+    print('N', N)
     fs = (0.5, 1.00, 1.41)
     ct = 0
 
+    if os.path.exists('frames/'): shutil.rmtree('frames/')    
+    os.mkdir('frames/')
+    
     for f in fs:
         
         for i in range(20):
@@ -135,7 +151,6 @@ def make_movie_frames():
             ax.get_yaxis().set_visible(False)
             savefig('frames/%d.png'%ct)
             close()
-            print('saving fucking i, ct', i, ct)
             ct += 1        
 
         ct += len(ts)
@@ -200,6 +215,6 @@ def make_movie_frames():
             ct += 1
 
 
-#test1()
-#test2()
-#make_movie_frames()
+test1()
+test2()
+make_movie_frames()

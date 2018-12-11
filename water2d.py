@@ -8,6 +8,7 @@ import sympy as sp
 from mpl_toolkits.mplot3d import Axes3D
 import time
 import matplotlib.animation as animation
+import os, shutil
 
 # system size
 W = 31
@@ -23,7 +24,8 @@ m2 = 5.0
 ms = m1*ones([Nx, Ny])
 ms[W:Nx-W:2, 0:Ny:2] = m2 
 
-ts = linspace(0, 450, 750)
+#ts = linspace(0, 450, 750)
+ts = linspace(0, 4, 10)
 
 def F(arr, t, f): 
     arr = reshape(arr, [2, Nx, Ny])
@@ -55,6 +57,8 @@ def solve(f):
 
 
 def test1(): # test for some set of frequencies
+    print('\n\nTest1\n')
+
     fs = (0.52, 1.021, 1.543)
     for f in fs:
         x = solve(f)
@@ -64,9 +68,9 @@ def test1(): # test for some set of frequencies
 
         figure()
         subplot(3,1,1)
-        imshow(x[20].T, aspect=2.0, interpolation='bilinear', vmax=vmax, vmin=vmin)
+        imshow(x[0].T, aspect=2.0, interpolation='bilinear', vmax=vmax, vmin=vmin)
         subplot(3,1,2)
-        imshow(x[300].T, aspect=2.0, interpolation='bilinear', vmax=vmax, vmin=vmin)
+        imshow(x[len(ts)//2].T, aspect=2.0, interpolation='bilinear', vmax=vmax, vmin=vmin)
         subplot(3,1,3)
         imshow(x[-1].T, aspect=2.0, interpolation='bilinear', vmax=vmax, vmin=vmin)
         savefig('ripples%1.1f.png'%f)
@@ -84,7 +88,9 @@ def test1(): # test for some set of frequencies
         save('x%1.2f.npy'%f, x)
 
 def test2(): # test range of frequencies and determine whether the wave is suppressed or passes through the crystal
-    fs = linspace(0.5, 1.7, 70)
+    print('\n\nTest1\n')
+
+    fs = linspace(0.5, 1.7, 5)
     maxs = []
     for f in fs:
         x = solve(f)
@@ -92,7 +98,7 @@ def test2(): # test range of frequencies and determine whether the wave is suppr
         s2 = std(x[:,-W:, :])/std(x[:,:W, :])
         s3 = std(x[:,-W:, :])
         maxs.append([s1,s2,s3])
-        print(f, maxs[-1])
+        print('f=%1.3f scores=%1.3f, %1.3f, %1.3f'%((f,)+tuple(maxs[-1])))
 
     maxs = array(maxs)
     figure()
@@ -102,10 +108,7 @@ def test2(): # test range of frequencies and determine whether the wave is suppr
     title('suppression')
     savefig('suppression.png')
 
-
-
-def movie(): # plotting
-
+def compute_bandstructure():
     w2, kx, ky = sp.symbols('w2 kx ky')
 
     cx = sp.cos(kx)
@@ -140,6 +143,16 @@ def movie(): # plotting
     savefig('bands.png')
     close()
 
+    return kxsbs, kysbs, bs
+    
+
+def make_movie_frames(): # plotting
+    print('\n\nMaking Movie Frames\n')
+
+    kxsbs, kysbs, bs = compute_bandstructure()
+
+    if os.path.exists('frames/'): shutil.rmtree('frames/')    
+    os.mkdir('frames/')
 
     fs = (0.52, 1.021, 1.543)
     ct = 0
@@ -226,5 +239,5 @@ def movie(): # plotting
 
 
 test1()
-#movie()
-#test2()
+test2()
+make_movie_frames()
