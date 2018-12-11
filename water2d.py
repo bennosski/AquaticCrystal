@@ -14,9 +14,9 @@ import os, shutil
 W = 31
 buoy_spacing = 3
 buoy_size = 1
-Nmid = (buoy_spacing-1)*30 + 1
+Nmid = (buoy_spacing-1)*10 + 1
 Nx = 2*W + Nmid
-Ny = 41
+Ny = 7
 
 m1 = 1.0 
 m2 = 5.0 
@@ -26,6 +26,7 @@ ms[W:Nx-W:2, 0:Ny:2] = m2
 
 #ts = linspace(0, 450, 750)
 ts = linspace(0, 4, 10)
+
 
 def F(arr, t, f): 
     arr = reshape(arr, [2, Nx, Ny])
@@ -55,9 +56,30 @@ def solve(f):
     x = odeint(F, zeros(2*Nx*Ny), ts, args=(f,))
     return reshape(x, [len(ts),2,Nx,Ny])[:,0,:,:]
 
-
-def test1(): # test for some set of frequencies
+def test1(): # test range of frequencies and determine whether the wave is suppressed or passes through the crystal
     print('\n\nTest1\n')
+
+    fs = linspace(0.5, 1.7, 10)
+    maxs = []
+    for f in fs:
+        x = solve(f)
+        s1 = amax(x[:,-W:, :])/amax(x[:, :W, :])
+        s2 = std(x[:,-W:, :])/std(x[:,:W, :])
+        s3 = std(x[:,-W:, :])
+        maxs.append([s1,s2,s3])
+        print('f=%1.3f scores=%1.3f, %1.3f, %1.3f'%((f,)+tuple(maxs[-1])))
+
+    maxs = array(maxs)
+    figure()
+    for i in range(3):
+        plot(fs, maxs[:,i]/sum(maxs[:,i]), '.-')
+    legend(['max norm', 'std norm', 'std'])
+    title('suppression')
+    savefig('suppression.png')
+
+    
+def test2(): # test for some set of frequencies
+    print('\n\nTest2\n')
 
     fs = (0.52, 1.021, 1.543)
     for f in fs:
@@ -87,28 +109,8 @@ def test1(): # test for some set of frequencies
 
         save('x%1.2f.npy'%f, x)
 
-def test2(): # test range of frequencies and determine whether the wave is suppressed or passes through the crystal
-    print('\n\nTest1\n')
-
-    fs = linspace(0.5, 1.7, 5)
-    maxs = []
-    for f in fs:
-        x = solve(f)
-        s1 = amax(x[:,-W:, :])/amax(x[:, :W, :])
-        s2 = std(x[:,-W:, :])/std(x[:,:W, :])
-        s3 = std(x[:,-W:, :])
-        maxs.append([s1,s2,s3])
-        print('f=%1.3f scores=%1.3f, %1.3f, %1.3f'%((f,)+tuple(maxs[-1])))
-
-    maxs = array(maxs)
-    figure()
-    for i in range(3):
-        plot(fs, maxs[:,i]/sum(maxs[:,i]), '.-')
-    legend(['max norm', 'std norm', 'std'])
-    title('suppression')
-    savefig('suppression.png')
-
-def compute_bandstructure():
+    
+def compute_bandstructure():    
     w2, kx, ky = sp.symbols('w2 kx ky')
 
     cx = sp.cos(kx)
@@ -150,19 +152,19 @@ def make_movie_frames(): # plotting
     print('\n\nMaking Movie Frames\n')
 
     kxsbs, kysbs, bs = compute_bandstructure()
-
+    
     if os.path.exists('frames/'): shutil.rmtree('frames/')    
     os.mkdir('frames/')
-
+    
     fs = (0.52, 1.021, 1.543)
     ct = 0
 
-    for f in fs:
+    for findex,f in enumerate(fs):
 
         #x = solve(f)
         x = load('x%1.2f.npy'%f)
 
-        for i in range(20):
+        for i in range(1):
             fig = figure()
             fig.set_size_inches(30, 20)
             ax = axes([0.1, 0.1, 0.8, 0.8], frameon=False)
@@ -181,10 +183,24 @@ def make_movie_frames(): # plotting
         kxs, kys = ravel(kxs[buoys]), ravel(kys[buoys])
 
         print('starting to plot')
-        vmax = amax(x) * 0.9
-        vmin = amin(x) * 0.9
-                
-        Nt = 500 if f==fs[0] else len(ts)
+        #vmax = amax(x) * 0.6
+        #vmin = amin(x) * 0.6
+        
+        xstd = std(x)
+        mx = mean(x)
+        vmax = mx + 1.6*xstd
+        vmin = mx - 1.6*xstd
+
+        xmin = amin(x)
+        xmax = amax(x)
+
+        xstd = std(x)
+        xmean  = mean(x)
+        vmax = xmean + 1.6*xstd
+        vmin = xmean - 1.6*xstd
+        
+        Nts = [500, 375, 750]
+        Nt = Nts[findex]
         for i in range(Nt):
 
             fig, ax1 = subplots(1,1)            
@@ -210,10 +226,14 @@ def make_movie_frames(): # plotting
             ax.text(-0.7, 8.2, 0.0, 'kx', size=30)
             ax.patch.set_alpha(0.0)
 
-            ax1.imshow(x[i].T, aspect='auto', interpolation='bilinear', vmin=vmin, vmax=vmax)
-            buoy_heights = ravel(x[i][buoys])
-            for h in buoy_heights:
-                ax1.plot(kxs, kys, '.', color='grey', markersize=8+15*(h-vmin)/(vmax-vmin))
+            ax1.imshow(x[i].T, aspect='auto', interpolation='bilinear', vmin=vmin, vmax=vmax, cmap='viridis')
+            buoy_heights = 100 + 130*(ravel(x[i][buoys])-(xmin+xmax)/2.0)/xstd
+            buoy_heights[buoy_heights<20]  = 20.0
+            buoy_heights[buoy_heights>220] = 220.0
+            #print('mean std bh', mean(buoy_heights), std(buoy_heights))
+            #print('vmax vmin', vmax, vmin)
+            #print(amin(buoy_heights), amax(buoy_heights))
+            ax1.scatter(kxs, kys, s=buoy_heights, color='grey', edgecolor=None)
             ax1.get_xaxis().set_visible(False)
             ax1.get_yaxis().set_visible(False)
             ax1.set_ylim(0, Ny-1)
@@ -237,7 +257,7 @@ def make_movie_frames(): # plotting
             close()
             ct += 1
 
-
 test1()
 test2()
 make_movie_frames()
+

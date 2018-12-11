@@ -1,3 +1,4 @@
+
 import matplotlib as mpl
 mpl.use('Agg')
 from matplotlib.pyplot import *
@@ -72,8 +73,7 @@ def test1():
     savefig('suppression.png')
 
 
-def test2():
-    
+def test2():    
     print('\n\nTest2\n')
     
     f = 1.41

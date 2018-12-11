@@ -15,3 +15,6 @@ for i in nums:
     video.write(cv2.imread('frames/%d.png'%i))
 
 video.release()
+
+
+    
