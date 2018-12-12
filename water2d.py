@@ -164,18 +164,17 @@ def make_movie_frames(): # plotting
         #x = solve(f)
         x = load('x%1.2f.npy'%f)
 
-        for i in range(1):
-            fig = figure()
-            fig.set_size_inches(30, 20)
-            ax = axes([0.1, 0.1, 0.8, 0.8], frameon=False)
-            ax.annotate('$\omega_\mathrm{drive}$ = %1.1f'%f, fontsize=55, xycoords='axes fraction', xy=(0.4, 0.45))
-            ax.set_xlim(-1,1)
-            ax.set_ylim(-1,1)
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
-            savefig('frames/%d.png'%ct)
-            close()
-            ct += 1        
+        fig = figure()
+        fig.set_size_inches(30, 20)
+        ax = axes([0.1, 0.1, 0.8, 0.8], frameon=False)
+        ax.annotate('$\omega_\mathrm{drive}$ = %1.1f'%f, fontsize=55, xycoords='axes fraction', xy=(0.4, 0.45))
+        ax.set_xlim(-1,1)
+        ax.set_ylim(-1,1)
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        savefig('frames/%d.png'%ct)
+        close()
+        ct += 1        
 
         buoys = zeros([Nx,Ny], dtype=bool)
         buoys[W:Nx-W:2, 0:Ny:2] = True
@@ -183,21 +182,14 @@ def make_movie_frames(): # plotting
         kxs, kys = ravel(kxs[buoys]), ravel(kys[buoys])
 
         print('starting to plot')
-        #vmax = amax(x) * 0.6
-        #vmin = amin(x) * 0.6
         
-        xstd = std(x)
-        mx = mean(x)
-        vmax = mx + 1.6*xstd
-        vmin = mx - 1.6*xstd
-
         xmin = amin(x)
         xmax = amax(x)
 
         xstd = std(x)
         xmean  = mean(x)
-        vmax = xmean + 1.6*xstd
-        vmin = xmean - 1.6*xstd
+        vmax = xmean + 3.0*xstd
+        vmin = xmean - 3.0*xstd
         
         Nts = [500, 375, 750]
         Nt = Nts[findex]
@@ -230,9 +222,6 @@ def make_movie_frames(): # plotting
             buoy_heights = 100 + 130*(ravel(x[i][buoys])-(xmin+xmax)/2.0)/xstd
             buoy_heights[buoy_heights<20]  = 20.0
             buoy_heights[buoy_heights>220] = 220.0
-            #print('mean std bh', mean(buoy_heights), std(buoy_heights))
-            #print('vmax vmin', vmax, vmin)
-            #print(amin(buoy_heights), amax(buoy_heights))
             ax1.scatter(kxs, kys, s=buoy_heights, color='grey', edgecolor=None)
             ax1.get_xaxis().set_visible(False)
             ax1.get_yaxis().set_visible(False)
