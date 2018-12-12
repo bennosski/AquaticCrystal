@@ -9,6 +9,6 @@ Inspired by the physics of photonic band gap crystal fibers.
 [![Example 2D simulation](https://img.youtube.com/vi/x6GVuuI3w0I/0.jpg)](https://www.youtube.com/watch?v=x6GVuuI3w0I)
 
 
-[1D animation](https://www.youtube.com/watch?v=TgXUA8fIOEU)
+[1D animation:](https://www.youtube.com/watch?v=TgXUA8fIOEU)
 
 [![Example 1D simulation](https://img.youtube.com/vi/TgXUA8fIOEU/0.jpg)](https://www.youtube.com/watch?v=TgXUA8fIOEU)
