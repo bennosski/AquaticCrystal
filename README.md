@@ -1,7 +1,7 @@
 # AquaticCrystal
 
 A simulation illustrating the behavior of waves propagating through a crystal with band gaps in 1D and 2D. 
-Waves with frequencies within a band can propagate through the crystal, while waves with frequencies lying in a band gap are reflected.
+Waves with a frequency within a band can propagate through the crystal, while waves with a frequency lying in a band gap are reflected.
 Inspired by the physics of photonic band gap crystal fibers.
 
 [Example 2D simulation](https://www.youtube.com/watch?v=x6GVuuI3w0I)
